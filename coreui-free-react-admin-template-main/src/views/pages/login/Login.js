@@ -52,7 +52,7 @@ class Login extends React.Component {
 
     fetch(this.state.url + 'api/auth/login', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: { 'content-type': 'application/json', 'Access-Control-Allow-Origin': 'origin' },
       body: JSON.stringify({ email: userEmail, password: userPass }),
     })
       .then((res) => res.json())

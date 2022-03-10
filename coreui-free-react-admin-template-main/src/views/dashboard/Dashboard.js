@@ -37,12 +37,12 @@ class Dashboard extends React.Component {
     const token = localStorage.getItem('token')
     const User = JSON.parse(localStorage.getItem('user'))
     let Authorization = token
-    let loggedIn
+    let loggedIn = true
 
     if (Authorization == null) {
       loggedIn = false
     }
-    loggedIn = true
+
     this.state = {
       auth: Authorization,
       user: User,
@@ -87,14 +87,14 @@ class Dashboard extends React.Component {
     this.setState({
       cmodal: !this.state.cmodal,
       details: newDetails,
-      // setDetails: Object.keys(newDetails)
-      // setDetails: Object.keys(newDetails).map(function (key) {
-      //   return (
-      //     <div>
-      //       {key} = {newDetails[key]}
-      //     </div>
-      //   )
-      // }),
+      setDetails: Object.keys(newDetails),
+      /*setDetails: Object.keys(newDetails).map(function (key) {
+        return (
+          <div>
+            {key} = {newDetails[key]}
+          </div>
+        )
+      }),*/
     })
   }
 
@@ -119,18 +119,18 @@ class Dashboard extends React.Component {
             <CCard>
               <CCardHeader>Visitors</CCardHeader>
               <CCardBody>
-                <CTable
+                <CSmartTable
                   items={datatable}
                   fields={fields}
-                  columnFilter
-                  tableFilter
+                  columnfilter="true"
+                  tablefilter="true"
                   hover
                   striped
                   bordered
                   size="md"
-                  itemsPerPage={20}
-                  pagination
-                  scopedSlots={{
+                  itemsperpage={20}
+                  pagination="true"
+                  scopedslots={{
                     user_id: (item) => <td>{item.user.name}</td>,
                     customer_id: (item) => <td>{item.user.name}</td>,
                     visitor_face_pic: (item) => (
