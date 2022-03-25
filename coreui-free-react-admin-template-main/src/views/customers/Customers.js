@@ -1,8 +1,10 @@
-import React, { lazy } from 'react'
+import React from 'react'
 // import customerData from './CustomersData'
 import { Redirect } from 'react-router-dom'
+import DataTable from 'react-data-table-component'
+// import DataTable from '../../DataTable'
 import {
-  CDataTable,
+  // CDataTable,
   CCard,
   CCardBody,
   CCardHeader,
@@ -11,10 +13,14 @@ import {
   CNav,
   CNavItem,
   CNavLink,
-  CTable,
+  // CTable,
 } from '@coreui/react'
 
-const fields = ['name', 'email', 'type']
+const fields = [
+  { name: 'Name', selector: (row) => row.name },
+  { name: 'Email', selector: (row) => row.email },
+  { name: 'Type', selector: (row) => row.type },
+]
 
 class Customers extends React.Component {
   constructor(props) {
@@ -30,7 +36,9 @@ class Customers extends React.Component {
 
     this.state = {
       auth: Authorization,
+      filterValue: '',
       user: User,
+      pending: true,
       datatable: [],
     }
   }
@@ -42,19 +50,20 @@ class Customers extends React.Component {
       .then((res) => res.json())
       .then((result) => {
         this.setState({
+          pending: false,
           datatable: result,
         })
       })
   }
   render() {
-    // if (this.state.user === null) {
-    //   return <Redirect to="/login" />
-    // }
-    // if (!this.state.user.is_admin) {
-    //   return <Redirect to="/dashboard" />
-    // }
+    if (this.state.user === null) {
+      return <Redirect to="/login" />
+    }
+    if (!this.state.user.is_admin) {
+      return <Redirect to="/dashboard" />
+    }
     const { datatable } = this.state
-
+    console.log(datatable)
     return (
       <>
         <CRow>
@@ -71,6 +80,49 @@ class Customers extends React.Component {
                 </CNav>
               </CCardHeader>
               <CCardBody>
+                <div>
+                  <label htmlFor="Search">
+                    <strong>Search</strong>
+                  </label>
+                  <br />
+                  <input
+                    id="Search"
+                    type="text"
+                    placeholder="Enter Filter"
+                    onChange={(item) => {
+                      console.log(item.target.value)
+                      return this.setState({ filterValue: item.target.value })
+                    }}
+                  />
+                </div>
+                <DataTable
+                  columns={fields}
+                  data={datatable.filter(
+                    (item, index) =>
+                      (item.name &&
+                        item.name?.toLowerCase().includes(this.state.filterValue.toLowerCase())) ||
+                      (item.email &&
+                        item.email?.toLowerCase().includes(this.state.filterValue.toLowerCase())) ||
+                      (item.type &&
+                        item.type?.toLowerCase().includes(this.state.filterValue.toLowerCase())),
+                  )}
+                  selectableRows
+                  direction="auto"
+                  fixedHeaderScrollHeight="300px"
+                  highlightOnHover
+                  pagination
+                  pointerOnHover
+                  responsive
+                  selectableRowsHighlight
+                  selectableRowsNoSelectAll
+                  selectableRowsRadio="checkbox"
+                  striped
+                  progressPending={this.state.pending}
+                  // subHeader
+                  // subHeaderAlign="left"
+                />
+              </CCardBody>
+              {/* <CCardBody>
                 <CTable
                   items={datatable}
                   fields={fields}
@@ -83,7 +135,7 @@ class Customers extends React.Component {
                   itemsPerPage={10}
                   pagination
                 />
-              </CCardBody>
+              </CCardBody> */}
             </CCard>
           </CCol>
         </CRow>

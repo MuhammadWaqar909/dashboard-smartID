@@ -1,6 +1,7 @@
 import React from 'react'
 import { Redirect } from 'react-router-dom'
 import CIcon from '@coreui/icons-react'
+import spinner from '../../../assets/spinner.gif'
 import { cilLockLocked } from '@coreui/icons'
 import {
   CButton,
@@ -12,7 +13,7 @@ import {
   CForm,
   CFormInput,
   CInputGroup,
-  CInputGroupPrepend,
+  // CInputGroupPrepend,
   CInputGroupText,
   CRow,
 } from '@coreui/react'
@@ -23,6 +24,7 @@ class Login extends React.Component {
     let loggedIn = false
 
     this.state = {
+      isLoading: false,
       email: '',
       pass: '',
       token: '',
@@ -43,7 +45,8 @@ class Login extends React.Component {
   formSubmit(e) {
     e.preventDefault()
     const { email, pass } = this.state
-    console.log(`${email}, ${pass}`)
+    this.setState({ isLoading: true })
+    // console.log(`${email}, ${pass}`)
     this.login(email, pass)
   }
 
@@ -65,6 +68,7 @@ class Login extends React.Component {
           })
         } else {
           this.setState({
+            isLoading: false,
             error: 'd-block',
           })
         }
@@ -117,14 +121,25 @@ class Login extends React.Component {
                       </CInputGroup>
                       <CRow>
                         <CCol className={this.state.error} md="12">
-                          <h3 className="text-center">Invalid Credentials</h3>
+                          <h3 className="text-center">Email Not Founded</h3>
                         </CCol>
                       </CRow>
                       <CRow>
                         <CCol xs="6">
-                          <CButton type="submit" color="primary" className="px-4">
-                            Login
-                          </CButton>
+                          {this.state.isLoading && (
+                            <div style={{ width: '30px', height: '30px' }}>
+                              <img
+                                src={spinner}
+                                style={{ width: '100%', height: '100%' }}
+                                alt="Spinner/image"
+                              />
+                            </div>
+                          )}
+                          {!this.state.isLoading && (
+                            <CButton color="primary" type="submit" className="px-4">
+                              Login
+                            </CButton>
+                          )}
                         </CCol>
                       </CRow>
                     </CForm>

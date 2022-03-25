@@ -1,10 +1,10 @@
-import React, { lazy } from 'react'
+import React from 'react'
 import { Redirect } from 'react-router-dom'
 import CIcon from '@coreui/icons-react'
 import { cilLockLocked } from '@coreui/icons'
 import { cilUser } from '@coreui/icons'
 import {
-  CDataTable,
+  // CDataTable,
   CCard,
   CCardBody,
   CCardHeader,
@@ -91,7 +91,7 @@ class Register extends React.Component {
     if (
       fields['password'] &&
       fields['conf_password'] &&
-      fields['password'] != fields['conf_password']
+      fields['password'] !== fields['conf_password']
     ) {
       formIsValid = false
       errors['password'] = 'password mismatch'

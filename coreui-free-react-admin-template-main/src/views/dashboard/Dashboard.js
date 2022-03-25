@@ -1,7 +1,9 @@
-import React, { lazy } from 'react'
+import React from 'react'
 import { Redirect } from 'react-router-dom'
+import DataTable from 'react-data-table-component'
+
 import {
-  CTable,
+  // CTable,
   CCard,
   CCardBody,
   CCardHeader,
@@ -15,27 +17,160 @@ import {
   CModalBody,
   CModalFooter,
 } from '@coreui/react'
+// import { Button } from '@coreui/coreui'
 
-const fields = [
-  { key: 'visitor_name', label: 'Visitor Name' },
-  { key: 'visitor_company', label: 'Visitor Company' },
-  { key: 'visitor_card_pic', label: 'Card', sorter: false, filter: false },
-  { key: 'visitor_face_pic', label: 'Face', sorter: false, filter: false },
-  { key: 'visiting_to', label: 'Visit To' },
-  { key: 'visit_purpose', label: 'Visitor Purpose' },
-  { key: 'time_in', label: 'Visit Date' },
-  { key: 'time_out', label: 'Time Out' },
-  { key: 'national_id', label: 'National ID' },
-  { key: 'nationality', label: 'Nationality' },
-  { key: 'user_id', label: 'Customer' },
-  { key: 'ocr_data', label: 'Details', sorter: false, filter: false },
-]
+const customStyle = { headCells: { style: { fontWeight: 600, fontSize: '14px' } } }
+let fields
+const subHeaderComponent = (
+  <div style={{ display: 'flex', alignItems: 'center' }}>
+    <input id="outlined-basic" label="Search" style={{ margin: '5px' }} />
+  </div>
+)
 
 class Dashboard extends React.Component {
   constructor(props) {
     super(props)
     const token = localStorage.getItem('token')
     const User = JSON.parse(localStorage.getItem('user'))
+
+    fields = [
+      {
+        key: 'visitor_name',
+        wrap: true,
+        minWidth: '120px',
+        name: 'Visitor Name',
+        selector: (row) => row.visitor_name,
+        filterable: true,
+      },
+      {
+        key: 'visitor_company',
+        wrap: true,
+        minWidth: '150px',
+        name: 'Visitor Company',
+        selector: (row) => row.visitor_company,
+        filterable: true,
+      },
+      {
+        key: 'visitor_card_pic',
+        name: 'Card',
+        wrap: true,
+
+        selector: (row) => (
+          <button
+            style={{
+              width: '100%',
+              height: '50px',
+              background: 'none',
+              outline: 'none',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+            onClick={() => this.toggle(row.visitor_card_pic)}
+          >
+            <img
+              style={{ width: '100%', height: '100%' }}
+              src={`${process.env.REACT_APP_MEDIA_URL + row.visitor_card_pic}`}
+              alt="card/jpg"
+            />
+          </button>
+        ),
+      },
+      {
+        key: 'visitor_face_pic',
+        name: 'Face',
+        wrap: true,
+
+        selector: (row) => (
+          <button
+            style={{
+              width: '100%',
+              height: '50px',
+              background: 'none',
+              outline: 'none',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+            onClick={() => this.toggle(row.visitor_face_pic)}
+          >
+            <img
+              style={{ width: '100%', height: '100%' }}
+              src={`${process.env.REACT_APP_MEDIA_URL + row.visitor_face_pic}`}
+              alt="card/jpg"
+            />
+          </button>
+        ),
+      },
+      {
+        key: 'visiting_to',
+        wrap: true,
+        name: 'Visit To',
+        selector: (row) => row.visiting_to,
+        filterable: true,
+      },
+
+      {
+        key: 'visit_purpose',
+        wrap: true,
+        name: 'Visitor Purpose',
+        minWidth: '140px',
+        selector: (row) => row.visit_purpose,
+        filterable: true,
+      },
+      {
+        key: 'time_in',
+        wrap: true,
+        name: 'Visit Date',
+        selector: (row) => row.time_in,
+        filterable: true,
+      },
+      {
+        key: 'time_out',
+        wrap: true,
+        name: 'Time Out',
+        selector: (row) => row.time_out,
+        filterable: true,
+      },
+      {
+        key: 'national_id',
+        minWidth: '140px',
+        wrap: true,
+        name: 'National ID',
+        selector: (row) => row.national_id,
+        filterable: true,
+      },
+      {
+        key: 'nationality',
+        wrap: true,
+        minWidth: '140px',
+        name: 'Nationality',
+        selector: (row) => row.nationality,
+        filterable: true,
+      },
+      {
+        key: 'user_id',
+        wrap: true,
+        name: 'Customer',
+        selector: (row) => row.customer_id,
+        filterable: true,
+      },
+      {
+        key: 'ocr_data',
+        name: 'Details',
+        wrap: true,
+
+        selector: (row) => (
+          <button
+            onClick={() => {
+              this.toggleDetails(row.ocr_data)
+              // console.log('Show Data Target....')
+            }}
+          >
+            Show Data
+          </button>
+        ),
+      },
+    ]
+
     let Authorization = token
     let loggedIn = true
 
@@ -45,11 +180,13 @@ class Dashboard extends React.Component {
 
     this.state = {
       auth: Authorization,
+      filterValue: '',
       user: User,
       datatable: [],
       pmodal: false,
       cmodal: false,
       pic_url: '',
+      pending: true,
       details: [],
       setDetails: '',
     }
@@ -57,24 +194,24 @@ class Dashboard extends React.Component {
     this.toggle = this.toggle.bind(this)
     this.toggleDetails = this.toggleDetails.bind(this)
     this.closeDetails = this.closeDetails.bind(this)
+    this.closePictureModel = this.closePictureModel.bind(this)
   }
 
   componentDidMount() {
     if (this.state.auth != null) {
-      console.log(this.state.auth)
       fetch(process.env.REACT_APP_API_URL + 'api/visitors/3', {
         headers: { Authorization: this.state.auth },
       })
         .then((res) => res.json())
         .then((result) => {
           this.setState({
+            pending: false,
             datatable: result,
           })
         })
     }
   }
-
-  toggle(pic = '') {
+  toggle(pic) {
     this.setState({
       pmodal: !this.state.pmodal,
       pic_url: pic,
@@ -82,26 +219,25 @@ class Dashboard extends React.Component {
   }
 
   toggleDetails(item, index = '') {
-    let newDetails = this.state.datatable[index]
-    newDetails = JSON.parse(newDetails.ocr_data)
+    let newDetails = JSON.parse(item)
+
     this.setState({
       cmodal: !this.state.cmodal,
-      details: newDetails,
       setDetails: Object.keys(newDetails),
-      /*setDetails: Object.keys(newDetails).map(function (key) {
-        return (
-          <div>
-            {key} = {newDetails[key]}
-          </div>
-        )
-      }),*/
+      setDetails: Object.keys(newDetails).map((key) => `${key} = ${newDetails[key]}`),
     })
+    console.log(this.state.setDetails)
   }
 
   closeDetails() {
     this.setState({
-      cmodal: !this.state.cmodal,
+      cmodal: false,
       details: '',
+    })
+  }
+  closePictureModel() {
+    this.setState({
+      pmodal: false,
     })
   }
 
@@ -110,7 +246,7 @@ class Dashboard extends React.Component {
       return <Redirect to="/login" />
     }
     const { datatable } = this.state
-
+    console.log(datatable[0]?.id)
     return (
       <>
         {/* <WidgetsDropdown /> */}
@@ -119,7 +255,63 @@ class Dashboard extends React.Component {
             <CCard>
               <CCardHeader>Visitors</CCardHeader>
               <CCardBody>
-                <CSmartTable
+                <div>
+                  <label htmlFor="Search">
+                    <strong>Search</strong>
+                  </label>
+                  <br />
+                  <input
+                    id="Search"
+                    type="text"
+                    placeholder="Enter Filter"
+                    onChange={(item) => {
+                      console.log(item.target.value)
+                      return this.setState({ filterValue: item.target.value })
+                    }}
+                  />
+                </div>
+                <DataTable
+                  columns={fields}
+                  data={datatable.filter(
+                    (item) =>
+                      (item.visitor_name &&
+                        item.visitor_name
+                          .toLowerCase()
+                          .includes(this.state.filterValue.toLowerCase())) ||
+                      (item.visitor_company &&
+                        item.visitor_company
+                          .toLowerCase()
+                          .includes(this.state.filterValue.toLowerCase())) ||
+                      (item.id &&
+                        item.id
+                          .toString()
+                          .toLowerCase()
+                          .includes(this.state.filterValue.toString().toLowerCase())) ||
+                      (item.visit_purpose &&
+                        item.visit_purpose
+                          .toString()
+                          .toLowerCase()
+                          .includes(this.state.filterValue.toString().toLowerCase())),
+                  )}
+                  // data={datatable}
+                  selectableRows
+                  direction="auto"
+                  fixedHeaderScrollHeight="300px"
+                  highlightOnHover
+                  pagination
+                  pointerOnHover
+                  selectableRowsHighlight
+                  selectableRowsNoSelectAll
+                  selectableRowsRadio="checkbox"
+                  striped
+                  progressPending={this.state.pending}
+                  // customStyles={customStyle}
+                  // subHeaderComponent={subHeaderComponent}
+                  responsive
+                  subHeaderAlign="right"
+                  subHeaderWrap
+                />
+                {/* <CSmartTable
                   items={datatable}
                   fields={fields}
                   columnfilter="true"
@@ -177,14 +369,14 @@ class Dashboard extends React.Component {
                       )
                     },
                   }}
-                />
+                /> */}
               </CCardBody>
             </CCard>
           </CCol>
         </CRow>
 
-        <CModal show={this.state.pmodal} onClose={this.toggle}>
-          <CModalHeader closeButton>Picture</CModalHeader>
+        <CModal visible={this.state.pmodal} onClose={this.closePictureModel}>
+          <CModalHeader>Picture</CModalHeader>
           <CModalBody>
             <CImage
               src={process.env.REACT_APP_MEDIA_URL + this.state.pic_url}
@@ -202,7 +394,7 @@ class Dashboard extends React.Component {
           </CModalFooter>
         </CModal>
 
-        <CModal show={this.state.cmodal} onClose={this.closeDetails}>
+        <CModal visible={this.state.cmodal} onClose={this.closeDetails}>
           <CModalHeader closeButton>Details</CModalHeader>
           <CModalBody>
             <CContainer>{this.state.setDetails}</CContainer>

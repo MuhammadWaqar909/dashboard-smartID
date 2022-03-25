@@ -6,9 +6,9 @@ import CIcon from '@coreui/icons-react'
 
 import { AppSidebarNav } from './AppSidebarNav'
 
-import Logo from '../assets/brand/smart_id_logo.svg'
-import { logoNegative } from 'src/assets/brand/logo-negative'
-import { sygnet } from 'src/assets/brand/sygnet'
+// import Logo from '../assets/brand/smart_id_logo.svg'
+// import { logoNegative } from 'src/assets/brand/logo-negative'
+// import { sygnet } from 'src/assets/brand/sygnet'
 
 import SimpleBar from 'simplebar-react'
 import 'simplebar/dist/simplebar.min.css'
